@@ -1,8 +1,6 @@
 'use strict';
 
-var app = {};
-
-app.router = {
+var router = {
   init: function() {
     this.handleRoute();
     window.onhashchange = this.handleRoute;
@@ -13,4 +11,4 @@ app.router = {
   }
 }
 
-app.router.init();
+router.init();
