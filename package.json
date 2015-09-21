@@ -1,0 +1,23 @@
+{
+  "name": "basicRouter",
+  "version": "0.0.0",
+  "description": "a basic example spa router, to take the magic away from spa routing",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/NicerHugs/basicRouter"
+  },
+  "author": "Jess Scheuring",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NicerHugs/basicRouter/issues"
+  },
+  "homepage": "https://github.com/NicerHugs/basicRouter",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-connect": "^2.2.0"
+  }
+}
