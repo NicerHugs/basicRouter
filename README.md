@@ -43,29 +43,37 @@ First we need to be able to figure out what route, or application state, the use
 
 var router = {
   _handleRoute: function() {
-    alert.log(window.location.hash);
+    alert(window.location);
   }
 }
 
 router._handleRoute();
+
 ```
 
+`window.location` returns the current browser location as a string. When you open the index.html file in your browser, you should see an alert telling you the current location. You'll notice that you do not see an alert as you navigate through the links on the page unless you refresh the browser window (although you will see the browser location bar update appropriately). This brings us to step 2:
+
 ### <a name="capture-changes">Capture changes in routes
+Not only do we care about what route the user navigated to when they first opened our application, but we also want to know when and to where the user is navigating. We update our main.js file:
+
 ```
-// main.js
 var router = {
   _init: function() {
     this._handleRoute();
-    window.onhashchange = this._handleRoute.bind();
+    window.onhashchange = this._handleRoute.bind(this);
   },
-  //capture hash change event
   _handleRoute: function() {
-    console.log(window.location.hash);
+    alert(window.location.hash);
   }
 }
 
 router._init();
+
 ```
+
+We've added an `_init` function, that registers an event handler with the browser. The window.onhashchange will be fired every time the fragment identifier (aka anything that follows the # symbol) of the URL changes. Because we are only listening for changes in the URL that occur after the hash, we have also changed our ) `_handleRoute` function to alert only the `window.location.hash`. Now, instead of the full browser location, we are only alerting the # and anything that follows it.
+
+The 'fragment identifier' exists to allow client side state management; changes in the fragment identifier do not trigger a new resource request from the browser. In fact, unless you explicitly tell your app to somehow handle the fragment identifiers, they will be all but ignored by your browser and app. The only thing they will do on their own is trigger a hashChange event.
 
 ### <a name="process-fragments">Process route fragments
 
