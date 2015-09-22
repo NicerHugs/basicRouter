@@ -1,14 +1,40 @@
 'use strict';
 
 var router = {
-  init: function() {
-    this.handleRoute();
-    window.onhashchange = this.handleRoute;
+  _init: function() {
+    this._handleRoute();
+    window.onhashchange = this._handleRoute.bind(this);
   },
-  //capture hash change event
-  handleRoute: function() {
-    console.log(window.location.hash);
-  }
+  _handleRoute: function() {
+    var cleanHash = this._stripHash(window.location.hash);
+    var fnIndex = this.routes[cleanHash];
+    this[fnIndex]();
+  },
+  _stripHash: function(hash) {
+    if (hash.match('\#')) {
+      return hash.slice(1);
+    } else {
+      return hash;
+    }
+  },
+  routes: {
+    '': 'home',
+    red: 'red',
+    blue: 'blue',
+    pink: 'pink',
+  },
+  home: function() {
+    document.body.style.backgroundColor = 'snow';
+  },
+  red: function() {
+    document.body.style.backgroundColor = 'crimson';
+  },
+  blue: function() {
+    document.body.style.backgroundColor = 'dodgerblue';
+  },
+  pink: function() {
+    document.body.style.backgroundColor = 'hotpink';
+  },
 }
 
-router.init();
+router._init();
