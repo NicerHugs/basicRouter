@@ -13,8 +13,9 @@ So what does a router actually have to do? I've broken down basic router into th
 * [Capture a Route](#capture-routes)
 * [Capture changes in route](#capture-changes)
 * [Process route fragments](#process-fragments)
-* [Store known route behaviors](#store-behaviors)
+* [Register known routes](#register-routes)
 * [Map routes to behaviors](#map-routes)
+* [Get Fancy (dynamic routing)](#add-dynamic-routes)
 
 ### <a name="capture-routes"></a>Capture a Route
 First we need to be able to figure out what route, or application state, the user is trying to access. We can do this by monitoring the URL of our application via the HTML5 window.location api.
@@ -30,9 +31,9 @@ First we need to be able to figure out what route, or application state, the use
   <body>
     <nav>
       <a href="#">Home</a>
-      <a href="#pink">pink</a>
-      <a href="#red">red</a>
-      <a href="#blue">blue</a>
+      <a href="#colors/pink">pink</a>
+      <a href="#colors/red">red</a>
+      <a href="#colors/blue">blue</a>
     </nav>
     <script type="text/javascript" src="main.js">
   </body>
@@ -71,26 +72,17 @@ router._init();
 
 ```
 
-We've added an `_init` function, that registers an event handler with the browser. The window.onhashchange will be fired every time the fragment identifier (aka anything that follows the # symbol) of the URL changes. Because we are only listening for changes in the URL that occur after the hash, we have also changed our ) `_handleRoute` function to alert only the `window.location.hash`. Now, instead of the full browser location, we are only alerting the # and anything that follows it.
+We've added an `_init` function, that registers an event handler with the browser. The window.onhashchange will be fired every time the fragment identifier (aka anything that follows the # symbol) of the URL changes. Because we are only listening for changes in the URL that occur after the hash, we have also changed our `_handleRoute` function to alert only the `window.location.hash`. Now, instead of the full browser location, we are only alerting the # and anything that follows it.
 
 The 'fragment identifier' exists to allow client side state management; changes in the fragment identifier do not trigger a new resource request from the browser. In fact, unless you explicitly tell your app to somehow handle the fragment identifiers, they will be all but ignored by your browser and app. The only thing they will do on their own is trigger a hashChange event.
 
 ### <a name="process-fragments">Process route fragments
-
-### <a name="store-behaviors">Store known route behaviors
-
-### <a name="map-routes">Map routes to behaviors
+For now, our router is extremely basic, and our app is also incredibly simple. If you're astute, tho, you've noticed that when we navigate 'Home', the alert is blank. Other alerts look something like `#colors/pink`. To our browser, a # with nothing following it is the same as no hash at all, and it correctly identifies that there is no fragment identifier, and therefore `window.location.hash` returns an empty string. But this means our behavior is inconsistent - sometimes we are returned with a hash symbol, and sometimes we are not. Since we need to use these fragment identifiers to map to application state behavior, we should whip them into a consistent format. We change our router's `_handleRoute` function and add a `_stripHash` function:
 
 ```
-var router = {
-  _init: function() {
-    this._handleRoute();
-    window.onhashchange = this._handleRoute.bind(this);
-  },
   _handleRoute: function() {
     var cleanHash = this._stripHash(window.location.hash);
-    var fnIndex = this.routes[cleanHash];
-    this[fnIndex]();
+    alert(cleanHash);
   },
   _stripHash: function(hash) {
     if (hash.match('\#')) {
@@ -98,28 +90,53 @@ var router = {
     } else {
       return hash;
     }
-  },
-  routes: {
-    '': 'home',
-    red: 'red',
-    blue: 'blue',
-    pink: 'pink',
-  },
-  home: function() {
-    document.body.style.backgroundColor = 'white';
-  },
-  red: function() {
-    document.body.style.backgroundColor = 'red';
-  },
-  blue: function() {
-    document.body.style.backgroundColor = 'blue';
-  },
-  pink: function() {
-    document.body.style.backgroundColor = 'pink';
-  },
-}
+  }
 
-router._init();
 ```
 
-Use these matched functions to (tell our dispatcher that a route has changed w/a flux based app, load proper models/controllers/views with an mvc app, etc).
+We will do more hash processing in the future, but for now, this is a good start.
+
+### <a name="store-behaviors">Register known routes
+Every router will have its own method for registering routes. Basically, we need to know what application states our app cares about. We will keep track of our available routes in a simple `routes` object on our router, pretty much exactly the way it is done in Backbone. We add a routes hash to our router object:
+
+```
+routes: {
+  '': 'home',
+  'colors/red': 'red',
+  'colors/blue': 'blue',
+  'colors/pink': 'pink',
+}
+```
+
+### <a name="map-routes">Map routes to behaviors
+How your router handles state change management will depend on the rest of your application architecture. A flux based app would probably send word to the dispatcher that an important event has occurred. An Ember app has `Route` objects which are mapped (internally) to hash locations and handle logic and template rendering for a given state. Since our app is very basic, we'll re-create the Backbone model, which is to map each route to a function directly in the router. Add the following to the router object:
+
+```
+home: function() {
+  document.body.style.backgroundColor = 'snow';
+},
+red: function() {
+  document.body.style.backgroundColor = 'crimson';
+},
+blue: function() {
+  document.body.style.backgroundColor = 'dodgerblue';
+},
+pink: function() {
+  document.body.style.backgroundColor = 'hotpink';
+}
+
+```
+
+and update the `_handleRoute` function as follows: 
+```
+_handleRoute: function() {
+  var cleanHash = this._stripHash(window.location.hash);
+  var fnIndex = this.routes[cleanHash];
+  this[fnIndex]();
+}
+
+```
+
+### <a name="add-dynamic-routes">Get Fancy (dynamic routes)
+Notice that we are repeating behavior with our color routes
+update our process fragments fn to look for dynamic segments and handle them appropriately

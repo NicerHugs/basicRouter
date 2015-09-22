@@ -19,22 +19,14 @@ var router = {
   },
   routes: {
     '': 'home',
-    red: 'red',
-    blue: 'blue',
-    pink: 'pink',
+    'colors/:color': 'color'
   },
   home: function() {
     document.body.style.backgroundColor = 'snow';
   },
-  red: function() {
-    document.body.style.backgroundColor = 'crimson';
-  },
-  blue: function() {
-    document.body.style.backgroundColor = 'dodgerblue';
-  },
-  pink: function() {
-    document.body.style.backgroundColor = 'hotpink';
-  },
+  color: function(color) {
+    document.body.style.backgroundColor = color;
+  }
 }
 
 router._init();
