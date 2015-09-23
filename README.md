@@ -219,3 +219,6 @@ _handleRoute: function() {
 ```
 
 We've added the `hashMatch` variable, which looks up the current fragment identifier against the registered routes regular expressions using the `_matchRoutes` function. Then we modified our `fnIndex` variable to utilize this new hashMatch object. We've also added an argsArray variable that includes the matches from our hashMatch object. And finally, we had to update our route function call with the `apply` method, so that we could pass any number of arguments without caring how many there are.
+
+## What Next?
+This router is extremely basic. It doesn't handle 'splats' or 'queries', nor does it allow for direct route manipulation. But hopefully walking through the process of building it has helped you understand what more robust routers are doing behind the scenes, and gives you the confidence to start exploring this technology more in depth. 

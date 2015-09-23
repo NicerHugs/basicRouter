@@ -43,7 +43,7 @@ var router = {
     } else {
       return {key: ''};
     }
-  },
+  }
   routes: {
     '': 'home',
     'colors/:color': 'color'
