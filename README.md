@@ -142,8 +142,29 @@ _handleRoute: function() {
 We've added a single function for each route we created in the previous step, and matched the names of the functions to their corresponding value in the routes hash. In our `_handleRoute` function we are looking up navigated to route's function in the `routes` hash, then calling that function. Now, as you navigate through the links on the page, you should notice not only that the location in the browser location bar is updated, but that the page itself changes (well, the background color does) too. Obviously in a useful app, our route functions would do more than just change th color of the document body.
 
 ### <a name="add-dynamic-routes">Get Fancy (dynamic routes)
-Realistically, at this point we've created a super basic router. But we are lacking some really important functionality, namely the ability to create 'dynamic' routes.
+At this point we've created a super basic router. But we are lacking some really important functionality, namely the ability to create 'dynamic' routes.
 
-Notice that we are repeating behavior with our color routes. All of these routes are namespaced after `colors/`, and all of the color route functions to the same thing, yet because of our simple hash map, we had to create a separate routes and route functions for each one.
+Notice that we are repeating behavior with our color routes. All of these routes are namespaced after `colors/`, and all of the color route functions do the same thing, yet because of our simple hash map, we had to create a separate routes and route functions for each one. Let's refactor our code to simplify. Add the following route to the routes hash:
 
-update our process fragments fn to look for dynamic segments and handle them appropriately
+```
+'colors/:color': 'color'
+
+```
+
+We are setting ourselves up to process the 'dynamic' part of our route by preceding it with a colon, and giving it a generic, parameter name. Using a colon here to signify the dynamic segment is standard accepted practice.
+
+Add the following route function:
+
+```
+color: function(color) {
+  document.body.style.backgroundColor = color;
+}
+
+```
+
+We've made a generic color route function, that accepts a single argument. This argument will be the dynamic segment of our route, and in order to do this we need to do some regular expression writing, and update our `_handleRoute` function.
+
+```
+/:(.*?)\/|:(.*?)$/g
+
+```
