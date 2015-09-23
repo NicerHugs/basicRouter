@@ -108,26 +108,28 @@ routes: {
 }
 ```
 
+This syntax may look a little funny, mostly because the keys, or property names, within the `routes` object are strings. Turns out you can always make your objects like this, and it allows you to avoid name conflicts such as having an empty string as a key, or including the backslash symbol, things that would ordinarily be illegal but make matching hash names much easier. And why are we mapping the hash strings to other strings? Great question. Read on:
+
 ### <a name="map-routes">Map routes to behaviors
-How your router handles state change management will depend on the rest of your application architecture. A flux based app would probably send word to the dispatcher that an important event has occurred. An Ember app has `Route` objects which are mapped (internally) to hash locations and handle logic and template rendering for a given state. Since our app is very basic, we'll re-create the Backbone model, which is to map each route to a function directly in the router. Add the following to the router object:
+How your router handles state change management will depend on the rest of your application architecture. A flux based app would probably send word to the dispatcher that a route change event has occurred. An Ember app has a `Route` class which maps (internally) to hash locations and handles logic and template rendering for a given state. We are emulating the Backbone version of routing, where each route in our routes hash maps to a function directly in the router. Add the following functions to the router object:
 
 ```
 home: function() {
   document.body.style.backgroundColor = 'snow';
 },
 red: function() {
-  document.body.style.backgroundColor = 'crimson';
+  document.body.style.backgroundColor = 'red';
 },
 blue: function() {
-  document.body.style.backgroundColor = 'dodgerblue';
+  document.body.style.backgroundColor = 'blue';
 },
 pink: function() {
-  document.body.style.backgroundColor = 'hotpink';
+  document.body.style.backgroundColor = 'pink';
 }
 
 ```
 
-and update the `_handleRoute` function as follows: 
+and update the `_handleRoute` function as follows:
 ```
 _handleRoute: function() {
   var cleanHash = this._stripHash(window.location.hash);
@@ -137,6 +139,11 @@ _handleRoute: function() {
 
 ```
 
+We've added a single function for each route we created in the previous step, and matched the names of the functions to their corresponding value in the routes hash. In our `_handleRoute` function we are looking up navigated to route's function in the `routes` hash, then calling that function. Now, as you navigate through the links on the page, you should notice not only that the location in the browser location bar is updated, but that the page itself changes (well, the background color does) too. Obviously in a useful app, our route functions would do more than just change th color of the document body.
+
 ### <a name="add-dynamic-routes">Get Fancy (dynamic routes)
-Notice that we are repeating behavior with our color routes
+Realistically, at this point we've created a super basic router. But we are lacking some really important functionality, namely the ability to create 'dynamic' routes.
+
+Notice that we are repeating behavior with our color routes. All of these routes are namespaced after `colors/`, and all of the color route functions to the same thing, yet because of our simple hash map, we had to create a separate routes and route functions for each one.
+
 update our process fragments fn to look for dynamic segments and handle them appropriately

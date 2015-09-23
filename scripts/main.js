@@ -17,6 +17,9 @@ var router = {
       return hash;
     }
   },
+  _matchRoutes: function() {
+    
+  },
   routes: {
     '': 'home',
     'colors/:color': 'color'
