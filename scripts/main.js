@@ -34,7 +34,10 @@ var router = {
     if (hash) {
       for (var i = 0; i < this._routes.length; i++) {
         if (this._routes[i]['keyRegEx'] && hash.match(this._routes[i]['keyRegEx'])) {
-          return {key: this._routes[i]['key'], args: hash.match(this._routes[i]['keyRegEx'])};
+          return {
+            key: this._routes[i]['key'],
+            args: hash.match(this._routes[i]['keyRegEx'])
+          };
         }
       }
     } else {
@@ -43,24 +46,14 @@ var router = {
   },
   routes: {
     '': 'home',
-    'colors/:color': 'color',
-    'newRoute/cool/p:page/:cool': 'cool'
+    'colors/:color': 'color'
   },
   home: function() {
     document.body.style.backgroundColor = 'snow';
   },
   color: function(color) {
     document.body.style.backgroundColor = color;
-  },
-  cool: function() {
-    console.log('cool');
   }
 }
 
 router._init();
-
-//make my routes keys into regex matches (_registerRoutes)
-  // escape forward slashes
-  // look for anything between : and / OR : and end of string - like this: /:(.*?)\/|:(.*?)$/g
-  // this should return an array of matches. then
-  // replace the matches with a regex that takes any characters - like this: (\S*) eg /colors\/p(\S*)\/(\S*)/

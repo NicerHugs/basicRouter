@@ -162,9 +162,60 @@ color: function(color) {
 
 ```
 
-We've made a generic color route function, that accepts a single argument. This argument will be the dynamic segment of our route, and in order to do this we need to do some regular expression writing, and update our `_handleRoute` function.
+We've made a generic color route function, that accepts a single argument, which we use in the color function to set the color of the page. Using this setup, we should be able to navigate to `colors/{any CSS color name}` and our page should turn that color! To enable dynamic routing, we need to match actual routes with the keys included in our routes hash, and pull out and pass along the dynamic segments used in the route functions. Let's start with the route matching. Add the following to the router object:
 
 ```
-/:(.*?)\/|:(.*?)$/g
+_registerRoutes: function() {
+  this._routes = [];
+  for (var key in this.routes) {
+    var keyRegEx = key.replace(/:(\w+)/g, '(\\S*)');
+  this._routes.push({keyRegEx: keyRegEx, key: key});
+  }
+}
 
 ```
+
+and update the `_init` function as follows:
+```
+_init: function() {
+  this._registerRoutes();
+  console.log(this._routes);
+  this.handleRoute();
+  window.onhashchange = this._handleRoute.bind(this);
+}
+```
+
+If you open up your console and refresh the page, you should now see the `_routes` array, which contains an object for each route in our `routes` hash. Each one has two properties, a 'key' and a 'keyRegEx'. We can now match our actual fragment identifiers with this regular expression. We'll do that with the following function:
+
+```
+_matchRoutes: function(hash) {
+  if (hash) {
+    for (var i = 0; i < this._routes.length; i++) {
+      if (this._routes[i]['keyRegEx'] && hash.match(this._routes[i]['keyRegEx'])) {
+        return {key: this._routes[i]['key'], args: hash.match(this._routes[i]['keyRegEx'])};
+      }
+    }
+  } else {
+    return {key: ''};
+  }
+}
+
+```
+
+First we check to make sure the current route has a fragment identifier. If we are at the root, and therefore our hash is falsey, we will just return the key as an empty string. In all other cases, we will loop through our available routes one by one until we find a match with the just created regEx. We return an object that includes the key for the matched route function (as it appears in our `routes` hash) and the any arguments the route function will need (as returned from our match function). Now let's update our `_handleRoute` function to use these new functions:
+
+```
+_handleRoute: function() {
+  var cleanHash = this._stripHash(window.location.hash);
+  var hashMatch = this._matchRoutes(cleanHash);
+  var fnIndex = this.routes[hashMatch['key']];
+  var argsArray = [];
+  if (hashMatch['args']) {
+    argsArray = hashMatch['args'].slice(1);
+  }
+  this[fnIndex].apply(this, argsArray);
+}
+
+```
+
+We've added the `hashMatch` variable, which looks up the current fragment identifier against the registered routes regular expressions using the `_matchRoutes` function. Then we modified our `fnIndex` variable to utilize this new hashMatch object. We've also added an argsArray variable that includes the matches from our hashMatch object. And finally, we had to update our route function call with the `apply` method, so that we could pass any number of arguments without caring how many there are.
