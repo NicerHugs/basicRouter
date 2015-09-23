@@ -108,10 +108,10 @@ routes: {
 }
 ```
 
-This syntax may look a little funny, mostly because the keys, or property names, within the `routes` object are strings. Turns out you can always make your objects like this, and it allows you to avoid name conflicts such as having an empty string as a key, or including the backslash symbol, things that would ordinarily be illegal but make matching hash names much easier. And why are we mapping the hash strings to other strings? Great question. Read on:
+This syntax may look a little funny, mostly because the keys, or property names, within the `routes` object are strings. Turns out you can always make your objects like this, and it allows you to avoid name conflicts such as having an empty string as a key, or including the backslash symbol, things that would ordinarily be illegal but make matching hash names much easier. The only caveat is that now we must access these properties with the square bracket syntax, because `this.routes.colors/pink` will throw an error, while `this.routes['colors/pink']` will work just fine. And why are we mapping the hash strings to other strings? Great question! Read on:
 
 ### <a name="map-routes">Map routes to behaviors
-How your router handles state change management will depend on the rest of your application architecture. A flux based app would probably send word to the dispatcher that a route change event has occurred. An Ember app has a `Route` class which maps (internally) to hash locations and handles logic and template rendering for a given state. We are emulating the Backbone version of routing, where each route in our routes hash maps to a function directly in the router. Add the following functions to the router object:
+How your router handles state change management will depend on the rest of your application architecture. A flux based app would probably send word to the dispatcher that a route change event has occurred. An Ember app has a `Route` class and module lookup which maps handles logic and template rendering for a given state based on file names. We are emulating the Backbone version of routing, where each route in our routes hash maps to a method on the router. Add the following methods to the router object:
 
 ```
 home: function() {
@@ -139,7 +139,7 @@ _handleRoute: function() {
 
 ```
 
-We've added a single function for each route we created in the previous step, and matched the names of the functions to their corresponding value in the routes hash. In our `_handleRoute` function we are looking up navigated to route's function in the `routes` hash, then calling that function. Now, as you navigate through the links on the page, you should notice not only that the location in the browser location bar is updated, but that the page itself changes (well, the background color does) too. Obviously in a useful app, our route functions would do more than just change th color of the document body.
+We've added a single function for each route we created in the previous step, and matched the names of the functions to their corresponding value in the routes hash. In our `_handleRoute` function we are looking up the navigated to route's function in the `routes` hash, then calling that function. Now, as you navigate through the links on the page, you should notice not only that the location in the browser location bar is updated, but that the page itself changes (well, the background color does) too. Obviously in a useful app, our route functions would do more than just change the color of the document body.
 
 ### <a name="add-dynamic-routes">Get Fancy (dynamic routes)
 At this point we've created a super basic router. But we are lacking some really important functionality, namely the ability to create 'dynamic' routes.
@@ -162,7 +162,7 @@ color: function(color) {
 
 ```
 
-We've made a generic color route function, that accepts a single argument, which we use in the color function to set the color of the page. Using this setup, we should be able to navigate to `colors/{any CSS color name}` and our page should turn that color! To enable dynamic routing, we need to match actual routes with the keys included in our routes hash, and pull out and pass along the dynamic segments used in the route functions. Let's start with the route matching. Add the following to the router object:
+We've made a generic color route function, that accepts a single argument, which we use in the color function to set the color of the page (hint: it's the paramter we set earlier!). Using this setup, we should be able to navigate to `colors/{any CSS color name}` and our page should turn that color! To enable dynamic routing, we need to match actual routes with the keys included in our routes hash, and pull out and pass along the dynamic segments used in the route functions. Get ready for some regular expressions! Let's start with the route matching. Add the following to the router object:
 
 ```
 _registerRoutes: function() {
@@ -175,7 +175,9 @@ _registerRoutes: function() {
 
 ```
 
-and update the `_init` function as follows:
+Simply put, we're replacing the route hash itself with a regular expression. We use the `string.replace` method to extract any ':' and following 'word characters', and replace them with a regular expression that will return a match for any value other than whitespace. We store the original key in the 'key' property, and the newly created regular expression in the 'keyRegEx' property.
+
+Then we update the `_init` function as follows:
 ```
 _init: function() {
   this._registerRoutes();
@@ -185,7 +187,7 @@ _init: function() {
 }
 ```
 
-If you open up your console and refresh the page, you should now see the `_routes` array, which contains an object for each route in our `routes` hash. Each one has two properties, a 'key' and a 'keyRegEx'. We can now match our actual fragment identifiers with this regular expression. We'll do that with the following function:
+If you open up your console and refresh the page, you should now see the `_routes` array, which contains an object for each route in our `routes` hash. We can now match our actual fragment identifiers with this regular expression to discover their associated key in our original `routes` hash. We'll do that with the following function:
 
 ```
 _matchRoutes: function(hash) {
@@ -202,7 +204,7 @@ _matchRoutes: function(hash) {
 
 ```
 
-First we check to make sure the current route has a fragment identifier. If we are at the root, and therefore our hash is falsey, we will just return the key as an empty string. In all other cases, we will loop through our available routes one by one until we find a match with the just created regEx. We return an object that includes the key for the matched route function (as it appears in our `routes` hash) and the any arguments the route function will need (as returned from our match function). Now let's update our `_handleRoute` function to use these new functions:
+First we check to make sure the current route has a fragment identifier. If we are at the root, and therefore our hash is falsey, we will just return the key as an empty string. In all other cases, we will loop through our available routes one by one until we find a match with the just created regEx. We return an object that includes the key for the matched route function (as it appears in our `routes` hash) and any arguments the route function will need (as returned from our match function). Now let's update our `_handleRoute` function to use these new functions:
 
 ```
 _handleRoute: function() {
@@ -218,7 +220,7 @@ _handleRoute: function() {
 
 ```
 
-We've added the `hashMatch` variable, which looks up the current fragment identifier against the registered routes regular expressions using the `_matchRoutes` function. Then we modified our `fnIndex` variable to utilize this new hashMatch object. We've also added an argsArray variable that includes the matches from our hashMatch object. And finally, we had to update our route function call with the `apply` method, so that we could pass any number of arguments without caring how many there are.
+We've added the `hashMatch` object, which looks up the current fragment identifier against the registered routes regular expressions using the `_matchRoutes` function. Then we modified our `fnIndex` variable to utilize this new `hashMatch` object. We've also added an argsArray variable that includes the matches from our hashMatch object. And finally, we had to update our route function call with the `apply` method, so that we could pass any number of arguments without caring how many there are, allowing us to have multiple dynamic segments in our routes.
 
 ## What Next?
-This router is extremely basic. It doesn't handle 'splats' or 'queries', nor does it allow for direct route manipulation. But hopefully walking through the process of building it has helped you understand what more robust routers are doing behind the scenes, and gives you the confidence to start exploring this technology more in depth. 
+This router is extremely basic. It doesn't handle 'splats' or 'queries', nor does it allow for direct route manipulation. But hopefully walking through the process of building it has helped you understand what more robust routers are doing behind the scenes, and gives you the confidence to make cool apps that really take advantage of the internet!
