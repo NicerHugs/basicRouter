@@ -17,7 +17,7 @@ So what does a router actually have to do? I've broken down basic router into th
 * [Get Fancy (dynamic routing)](#add-dynamic-routes)
 
 ### <a name="capture-changes">Capture changes in routes
-First we need to be able to figure out what route, or application state, the user is trying to access. We can do this by monitoring the URL of our application via the HTML5 window.location api. Not only do we care about what route the user navigated to when they first opened our application, but we also want to know when and to where the user is navigating. We update our main.js file:
+First we need to be able to figure out what route, or application state, the user is trying to access. We can do this by monitoring the URL of our application via the HTML5 window.location api. Not only do we care about what route the user navigated to when they first opened our application, but we also want to know when and to where the user is navigating.
 
 ```
 // index.html
@@ -41,6 +41,8 @@ First we need to be able to figure out what route, or application state, the use
 ```
 
 ```
+// main.js
+
 window.onhashchange = function() {
   alert(window.location.hash);
 }
