@@ -10,15 +10,15 @@ One great feature of writing web-apps is that we can take advantage of that cool
 
 ## Building a Basic Router
 So what does a router actually have to do? I've broken down basic router into the following steps:
-* [Capture a Route](#capture-routes)
 * [Capture changes in route](#capture-changes)
 * [Process route fragments](#process-fragments)
 * [Register known routes](#register-routes)
 * [Map routes to behaviors](#map-routes)
 * [Get Fancy (dynamic routing)](#add-dynamic-routes)
 
-### <a name="capture-routes"></a>Capture a Route
-First we need to be able to figure out what route, or application state, the user is trying to access. We can do this by monitoring the URL of our application via the HTML5 window.location api.
+### <a name="capture-changes">Capture changes in routes
+First we need to be able to figure out what route, or application state, the user is trying to access. We can do this by monitoring the URL of our application via the HTML5 window.location api. Not only do we care about what route the user navigated to when they first opened our application, but we also want to know when and to where the user is navigating. We update our main.js file:
+
 ```
 // index.html
 
@@ -39,47 +39,25 @@ First we need to be able to figure out what route, or application state, the use
   </body>
 </html>
 ```
+
+```
+window.onhashchange = function() {
+  alert(window.location.hash);
+}
+
+```
+
+The window.onhashchange is an event listener that will be fired every time the 'fragment identifier' (aka anything that follows the # symbol) of the URL changes. `window.location.hash` returns the current browser 'fragment identifier', allowing us to get a handle on the current browser 'location'.
+
+The 'fragment identifier' exists to allow client side state management; changes in the fragment identifier do not trigger a new resource request from the browser. In fact, unless you explicitly tell your app to somehow handle the fragment identifiers, they will be all but ignored by your browser and app. The only thing they will do on their own is trigger a hashChange event. When you open the index.html file in your browser, you should see an alert telling you the current location, and as you click the links on the page you will see not only the alert but also that the browser location bar updates appropriately.
+
+### <a name="process-fragments">Process route fragments
+Right now, we don't really have a router, just a simple event handler that captures and alerts pseudo locations. If you're astute, tho, you've noticed that when we navigate 'Home', the alert is blank. Other alerts look something like `#colors/pink`. To our browser, a # with nothing following it is the same as no hash at all, and it correctly identifies that there is no fragment identifier, and therefore `window.location.hash` returns an empty string. But this means our behavior is inconsistent - sometimes we are returned with a hash symbol, and sometimes we are not. Since we need to use these fragment identifiers to map to application state behavior, we should whip them into a consistent format. And since we're going to be doing more than one simple little event listener, let's start giving our code some structure:
+
 ```
 // main.js
 
 var router = {
-  _handleRoute: function() {
-    alert(window.location);
-  }
-}
-
-router._handleRoute();
-
-```
-
-`window.location` returns the current browser location as a string. When you open the index.html file in your browser, you should see an alert telling you the current location. You'll notice that you do not see an alert as you navigate through the links on the page unless you refresh the browser window (although you will see the browser location bar update appropriately). This brings us to step 2:
-
-### <a name="capture-changes">Capture changes in routes
-Not only do we care about what route the user navigated to when they first opened our application, but we also want to know when and to where the user is navigating. We update our main.js file:
-
-```
-var router = {
-  _init: function() {
-    this._handleRoute();
-    window.onhashchange = this._handleRoute.bind(this);
-  },
-  _handleRoute: function() {
-    alert(window.location.hash);
-  }
-}
-
-router._init();
-
-```
-
-We've added an `_init` function, that registers an event handler with the browser. The window.onhashchange will be fired every time the fragment identifier (aka anything that follows the # symbol) of the URL changes. Because we are only listening for changes in the URL that occur after the hash, we have also changed our `_handleRoute` function to alert only the `window.location.hash`. Now, instead of the full browser location, we are only alerting the # and anything that follows it.
-
-The 'fragment identifier' exists to allow client side state management; changes in the fragment identifier do not trigger a new resource request from the browser. In fact, unless you explicitly tell your app to somehow handle the fragment identifiers, they will be all but ignored by your browser and app. The only thing they will do on their own is trigger a hashChange event.
-
-### <a name="process-fragments">Process route fragments
-For now, our router is extremely basic, and our app is also incredibly simple. If you're astute, tho, you've noticed that when we navigate 'Home', the alert is blank. Other alerts look something like `#colors/pink`. To our browser, a # with nothing following it is the same as no hash at all, and it correctly identifies that there is no fragment identifier, and therefore `window.location.hash` returns an empty string. But this means our behavior is inconsistent - sometimes we are returned with a hash symbol, and sometimes we are not. Since we need to use these fragment identifiers to map to application state behavior, we should whip them into a consistent format. We change our router's `_handleRoute` function and add a `_stripHash` function:
-
-```
   _handleRoute: function() {
     var cleanHash = this._stripHash(window.location.hash);
     alert(cleanHash);
@@ -91,6 +69,13 @@ For now, our router is extremely basic, and our app is also incredibly simple. I
       return hash;
     }
   }
+  _init: function() {
+    this._handleRoute();
+    window.onhashchange = this._handleRoute.bind(this);
+  }
+}
+
+router._init();
 
 ```
 
